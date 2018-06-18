@@ -1,15 +1,8 @@
 package com.alibaba.dubbo.performance.demo.agent;
 
-import com.alibaba.dubbo.performance.demo.agent.agent.NettyHttpServer;
-import com.alibaba.dubbo.performance.demo.agent.agent.NettyTcpServer;
-import com.alibaba.dubbo.performance.demo.agent.registry.EtcdRegistry;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.boot.SpringApplication;
+import com.alibaba.dubbo.performance.demo.agent.agent.ConsumerServer;
+import com.alibaba.dubbo.performance.demo.agent.agent.ProviderAgentServer;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
 
 @SpringBootApplication
 public class AgentApp {
@@ -21,10 +14,10 @@ public class AgentApp {
         String type = System.getProperty("type");
         int port = Integer.parseInt(System.getProperty("server.port"));
         if ("provider".equals(type)) {
-            new NettyTcpServer().bind(port);
+            new ProviderAgentServer().bind(port);
         } else if ("consumer".equals(type)) {
 //            SpringApplication.run(AgentApp.class, args);
-            new NettyHttpServer().bind(port);
+            new ConsumerServer().bind(port);
         }
     }
 }

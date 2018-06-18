@@ -1,6 +1,6 @@
 package com.alibaba.dubbo.performance.demo.agent.dubbo;
 
-import com.alibaba.dubbo.performance.demo.agent.agent.model.MessageFuture;
+import com.alibaba.dubbo.performance.demo.agent.dubbo.model.RpcFuture;
 import com.alibaba.dubbo.performance.demo.agent.dubbo.model.RpcRequestHolder;
 import com.alibaba.dubbo.performance.demo.agent.dubbo.model.RpcResponse;
 
@@ -13,10 +13,10 @@ public class RpcClientHandler extends SimpleChannelInboundHandler<RpcResponse> {
     @Override
     protected void channelRead0(ChannelHandlerContext channelHandlerContext, RpcResponse response) {
         String requestId = response.getRequestId();
-        MessageFuture future = RpcRequestHolder.remove(requestId);;
+        RpcFuture future = RpcRequestHolder.remove(requestId);
         if(null != future){
 //            logger.info(new String(response.getBytes()));
-            future.done(response.getBytes());
+            future.done(response);
         }
     }
 }

@@ -1,8 +1,8 @@
 package com.alibaba.dubbo.performance.demo.agent.dubbo;
 
 import com.alibaba.dubbo.performance.demo.agent.agent.model.Holder;
-import com.alibaba.dubbo.performance.demo.agent.agent.model.MessageFuture;
 import com.alibaba.dubbo.performance.demo.agent.dubbo.model.Bytes;
+import com.alibaba.dubbo.performance.demo.agent.dubbo.model.RpcFuture;
 import com.alibaba.dubbo.performance.demo.agent.dubbo.model.RpcRequestHolder;
 import com.alibaba.dubbo.performance.demo.agent.dubbo.model.RpcResponse;
 import com.alibaba.fastjson.JSON;
@@ -96,10 +96,6 @@ public class DubboRpcDecoder extends ByteToMessageDecoder {
         String id = String.valueOf(requestId);
         response.setRequestId(id);
         response.setBytes(subArray);
-        MessageFuture future = RpcRequestHolder.remove(response.getRequestId());
-        if (future != null) {
-            future.done(response.getBytes());
-        }
         return response;
     }
 }

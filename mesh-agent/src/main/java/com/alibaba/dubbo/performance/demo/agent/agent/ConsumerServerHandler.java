@@ -2,10 +2,10 @@ package com.alibaba.dubbo.performance.demo.agent.agent;/**
  * Created by msi- on 2018/5/18.
  */
 
+import com.alibaba.dubbo.performance.demo.agent.agent.model.AgentFuture;
 import com.alibaba.dubbo.performance.demo.agent.agent.model.Holder;
 import com.alibaba.dubbo.performance.demo.agent.agent.model.MessageRequest;
 import com.alibaba.dubbo.performance.demo.agent.agent.model.MessageResponse;
-import com.alibaba.dubbo.performance.demo.agent.agent.model.MessageFuture;
 import com.alibaba.dubbo.performance.demo.agent.agent.util.IdGenerator;
 import com.alibaba.dubbo.performance.demo.agent.registry.Endpoint;
 import com.alibaba.dubbo.performance.demo.agent.registry.LoadBalanceChoice;
@@ -14,8 +14,6 @@ import io.netty.buffer.PooledByteBufAllocator;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.*;
 import io.netty.channel.epoll.EpollSocketChannel;
-import io.netty.channel.socket.nio.NioServerSocketChannel;
-import io.netty.channel.socket.nio.NioSocketChannel;
 import io.netty.handler.codec.http.*;
 import io.netty.handler.codec.http.multipart.Attribute;
 import io.netty.handler.codec.http.multipart.HttpPostRequestDecoder;
@@ -26,8 +24,6 @@ import org.slf4j.LoggerFactory;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.Future;
-import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.springframework.http.HttpHeaders.CONTENT_LENGTH;
 import static org.springframework.http.HttpHeaders.CONTENT_TYPE;
@@ -38,8 +34,8 @@ import static org.springframework.http.HttpHeaders.CONTENT_TYPE;
  * @author: XSL
  * @create: 2018-05-18 20:33
  **/
-public class HttpServerHandler extends SimpleChannelInboundHandler<FullHttpRequest> {
-    private Logger logger = LoggerFactory.getLogger(HttpServerHandler.class);
+public class ConsumerServerHandler extends SimpleChannelInboundHandler<FullHttpRequest> {
+    private Logger logger = LoggerFactory.getLogger(ConsumerServerHandler.class);
     private static ConcurrentHashMap<String,Channel> channelMap = new ConcurrentHashMap<>();
     private Map<String,String> paramMap = new HashMap<>();
     private static Map<String,String> map = new HashMap<>();
@@ -59,8 +55,7 @@ public class HttpServerHandler extends SimpleChannelInboundHandler<FullHttpReque
         MessageRequest messageRequest = new MessageRequest(
                 IdGenerator.getIdByIncrement(),paramMap.get("interface"),paramMap.get("method"),paramMap.get("parameterTypesString"),paramMap.get("parameter")
                 );
-        MessageFuture<MessageResponse> future = sendRequest("com.alibaba.dubbo.performance.demo.provider.IHelloService",messageRequest,channelHandlerContext);
-        Runnable runnable = () -> {
+        AgentFuture<MessageResponse> future = sendRequest("com.alibaba.dubbo.performance.demo.provider.IHelloService",messageRequest,channelHandlerContext);
             try {
                 MessageResponse response = future.get();
 //                long time = System.nanoTime();
@@ -77,9 +72,9 @@ public class HttpServerHandler extends SimpleChannelInboundHandler<FullHttpReque
                 channelHandlerContext.writeAndFlush(response);
                 e.printStackTrace();
             }
-        };
+
         // executor为null 将交给channel的绑定的eventLoop执行
-        future.addListener(runnable,channelHandlerContext.channel().eventLoop());
+//        future.addListener(runnable,channelHandlerContext.channel().eventLoop());
     }
 
     private boolean writeResponse(HttpRequest request,HttpObject httpObject, ChannelHandlerContext ctx, int data) {
@@ -96,9 +91,9 @@ public class HttpServerHandler extends SimpleChannelInboundHandler<FullHttpReque
         ctx.writeAndFlush(response,ctx.voidPromise());
         return keepAlive;
     }
-    private MessageFuture<MessageResponse> sendRequest(String serviceName, MessageRequest request, ChannelHandlerContext channelHandlerContext) throws Exception {
+    private AgentFuture<MessageResponse> sendRequest(String serviceName, MessageRequest request, ChannelHandlerContext channelHandlerContext) throws Exception {
         final Channel channel = channelHandlerContext.channel();
-        MessageFuture<MessageResponse> future = new MessageFuture<>();
+        AgentFuture<MessageResponse> future = new AgentFuture<>();
         Holder.putRequest(request.getMessageId(), future);
         Endpoint endpoint = LoadBalanceChoice.weightedrandomChoice(serviceName);
         request.setEndpoint(endpoint);
@@ -112,7 +107,7 @@ public class HttpServerHandler extends SimpleChannelInboundHandler<FullHttpReque
                     .option(ChannelOption.SO_KEEPALIVE, true)
                     .option(ChannelOption.TCP_NODELAY, true)
                     .option(ChannelOption.ALLOCATOR, PooledByteBufAllocator.DEFAULT)
-                    .handler(new NettyClientInitializer());
+                    .handler(new ConsumerClientInitializer());
             ChannelFuture channelFuture = bootstrap.connect(endpoint.getHost(),endpoint.getPort());
             channelFuture.addListener(new ListenerImpl(request,endpoint));
         } else {

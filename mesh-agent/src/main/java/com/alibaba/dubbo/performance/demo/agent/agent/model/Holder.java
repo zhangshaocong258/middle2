@@ -2,6 +2,7 @@ package com.alibaba.dubbo.performance.demo.agent.agent.model;/**
  * Created by msi- on 2018/5/13.
  */
 
+import com.alibaba.dubbo.performance.demo.agent.agent.balance.Agent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -17,12 +18,12 @@ import java.util.concurrent.ConcurrentHashMap;
  **/
 
 public class Holder {
-    private final static ConcurrentHashMap<String,MessageFuture<MessageResponse>> requestMap  = new ConcurrentHashMap<>();
+    private final static ConcurrentHashMap<String,AgentFuture<MessageResponse>> requestMap  = new ConcurrentHashMap<>();
     private final static ConcurrentHashMap<String,Long> timeMap = new ConcurrentHashMap<>();
-    public static MessageFuture<MessageResponse> removeRequest(String key){
+    public static AgentFuture<MessageResponse> removeRequest(String key){
         return requestMap.remove(key);
     }
-    public static void putRequest(String key, MessageFuture<MessageResponse> future) {
+    public static void putRequest(String key, AgentFuture<MessageResponse> future) {
         requestMap.put(key,future);
 //        timeMap.put(key,System.nanoTime());
     }

@@ -13,12 +13,13 @@ import io.netty.channel.socket.SocketChannel;
  * @create: 2018-05-27 21:49
  **/
 
-public class NettyClientInitializer extends ChannelInitializer<SocketChannel> {
+public class ConsumerClientInitializer extends ChannelInitializer<SocketChannel> {
     @Override
     protected void initChannel(SocketChannel socketChannel) throws Exception {
         socketChannel.pipeline()
                 .addLast(new MessageEncoder(KryoPoolFactory.getKryoPoolInstance()))
-                .addLast(new MessageDecoder(KryoPoolFactory.getKryoPoolInstance()));
+                .addLast(new MessageDecoder(KryoPoolFactory.getKryoPoolInstance()))
+                .addLast(new ConsumerClientHandler());
 //                ProtostuffCodeUtil util = ProtostuffCodeUtil.getClientCodeUtil();
 //                socketChannel.pipeline().addLast(new ProtostuffEncoder(util))
 //                        .addLast(new ProtostuffDecoder(util))

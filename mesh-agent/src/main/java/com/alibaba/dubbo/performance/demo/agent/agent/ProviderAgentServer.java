@@ -4,7 +4,6 @@ package com.alibaba.dubbo.performance.demo.agent.agent;/**
 
 import com.alibaba.dubbo.performance.demo.agent.agent.serialize.*;
 import com.alibaba.dubbo.performance.demo.agent.registry.EtcdRegistry;
-import com.esotericsoftware.kryo.pool.KryoPool;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.buffer.PooledByteBufAllocator;
 import io.netty.channel.ChannelFuture;
@@ -13,9 +12,7 @@ import io.netty.channel.ChannelOption;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.epoll.EpollEventLoopGroup;
 import io.netty.channel.epoll.EpollServerSocketChannel;
-import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
-import io.netty.channel.socket.nio.NioServerSocketChannel;
 
 /**
  * @program: TcpProject
@@ -24,7 +21,7 @@ import io.netty.channel.socket.nio.NioServerSocketChannel;
  * @create: 2018-05-16 20:18
  **/
 
-public class NettyTcpServer {
+public class ProviderAgentServer {
     private static EtcdRegistry registry = new EtcdRegistry(System.getProperty("etcd.url"));
     public void bind(int port) throws Exception {
         InvokeService.init();
@@ -45,7 +42,7 @@ public class NettyTcpServer {
                     .childOption(ChannelOption.SO_KEEPALIVE,true)
                     // 禁用naggle算法，naggle算法会在发送数据时等待多个包合并发送提高网络的利用率，但会降低实时性
                     .childOption(ChannelOption.TCP_NODELAY,true)
-                    .childHandler(new NettyServerInitializer());
+                    .childHandler(new ProviderServerInitializer());
             ChannelFuture channelFuture = serverBootstrap.bind("0.0.0.0",port).sync();
             channelFuture.channel().closeFuture().sync();
         } catch (Exception e) {
@@ -64,18 +61,18 @@ public class NettyTcpServer {
      * @create: 2018-05-20 19:35
      **/
 
-    private static class NettyServerInitializer extends ChannelInitializer<SocketChannel>{
+    private static class ProviderServerInitializer extends ChannelInitializer<SocketChannel>{
 
         @Override
         protected void initChannel(SocketChannel SocketChannel) throws Exception {
 //            ProtostuffCodeUtil util = ProtostuffCodeUtil.getServerCodeUtil();
 //            SocketChannel.pipeline().addLast(new ProtostuffEncoder(util))
 //                    .addLast(new ProtostuffDecoder(util))
-//                    .addLast(new NettyServerHandler());
+//                    .addLast(new ProviderServerHandler());
             SocketChannel.pipeline()
                     .addLast(new MessageEncoder(KryoPoolFactory.getKryoPoolInstance()))
                     .addLast(new MessageDecoder(KryoPoolFactory.getKryoPoolInstance()))
-                    .addLast(new NettyServerHandler());
+                    .addLast(new ProviderServerHandler());
         }
     }
 }

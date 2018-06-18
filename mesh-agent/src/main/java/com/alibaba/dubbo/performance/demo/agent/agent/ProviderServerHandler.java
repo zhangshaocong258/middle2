@@ -4,14 +4,11 @@ package com.alibaba.dubbo.performance.demo.agent.agent;/**
 
 
 
+import com.alibaba.dubbo.performance.demo.agent.agent.model.AgentFuture;
 import com.alibaba.dubbo.performance.demo.agent.agent.model.MessageRequest;
 import com.alibaba.dubbo.performance.demo.agent.agent.model.MessageResponse;
-import com.alibaba.dubbo.performance.demo.agent.agent.model.MessageFuture;
 import com.alibaba.dubbo.performance.demo.agent.dubbo.RpcClientInitializer;
-import com.alibaba.dubbo.performance.demo.agent.dubbo.model.JsonUtils;
-import com.alibaba.dubbo.performance.demo.agent.dubbo.model.Request;
-import com.alibaba.dubbo.performance.demo.agent.dubbo.model.RpcInvocation;
-import com.alibaba.dubbo.performance.demo.agent.dubbo.model.RpcRequestHolder;
+import com.alibaba.dubbo.performance.demo.agent.dubbo.model.*;
 import com.alibaba.dubbo.performance.demo.agent.registry.Endpoint;
 import com.alibaba.dubbo.performance.demo.agent.registry.IpHelper;
 import com.alibaba.fastjson.JSON;
@@ -39,8 +36,8 @@ import java.util.concurrent.atomic.AtomicInteger;
  * @create: 2018-05-16 20:29
  **/
 
-public class NettyServerHandler extends SimpleChannelInboundHandler<MessageRequest> {
-//    private Logger logger = LoggerFactory.getLogger(NettyServerHandler.class);
+public class ProviderServerHandler extends SimpleChannelInboundHandler<MessageRequest> {
+//    private Logger logger = LoggerFactory.getLogger(ProviderServerHandler.class);
     private static final String HOST = "127.0.0.1";
     private static final int PORT = Integer.valueOf(System.getProperty("dubbo.protocol.port"));
     private static ConcurrentHashMap<EventLoop,Channel> concurrentHashMap = new ConcurrentHashMap<>();
@@ -55,8 +52,7 @@ public class NettyServerHandler extends SimpleChannelInboundHandler<MessageReque
     @Override
     protected void channelRead0(ChannelHandlerContext channelHandlerContext, MessageRequest messageRequest) throws Exception {
 //        concurrentHashMap.put(messageRequest.getMessageId(),Thread.currentThread().getName());
-        MessageFuture future = invoke(channelHandlerContext,messageRequest);
-        Runnable callable = () -> {
+        RpcFuture future = invoke(channelHandlerContext,messageRequest);
             try {
                 Integer result = JSON.parseObject((byte[]) future.get(),Integer.class);
                 MessageResponse response = new MessageResponse(messageRequest.getMessageId(),result,endpoint,RpcRequestHolder.getSize());
@@ -65,8 +61,8 @@ public class NettyServerHandler extends SimpleChannelInboundHandler<MessageReque
                 channelHandlerContext.writeAndFlush(new MessageResponse(messageRequest.getMessageId(),"-1",endpoint,RpcRequestHolder.getSize()));
                 e.printStackTrace();
             }
-        };
-        future.addListener(callable,channelHandlerContext.channel().eventLoop());
+
+//        future.addListener(callable,channelHandlerContext.channel().eventLoop());
     }
 
     @Override
@@ -74,7 +70,7 @@ public class NettyServerHandler extends SimpleChannelInboundHandler<MessageReque
         cause.printStackTrace();
     }
 
-    private MessageFuture invoke(ChannelHandlerContext channelHandlerContext,MessageRequest messageRequest) throws IOException {
+    private RpcFuture invoke(ChannelHandlerContext channelHandlerContext,MessageRequest messageRequest) throws IOException {
         final Channel channel = channelHandlerContext.channel();
         RpcInvocation invocation = new RpcInvocation();
         invocation.setMethodName(messageRequest.getMethod());
@@ -90,7 +86,7 @@ public class NettyServerHandler extends SimpleChannelInboundHandler<MessageReque
         request.setVersion("2.0.0");
         request.setTwoWay(true);
         request.setData(invocation);
-        MessageFuture future = new MessageFuture();
+        RpcFuture future = new RpcFuture();
         RpcRequestHolder.put(String.valueOf(request.getId()),future);
         Channel nextChannel = concurrentHashMap.get(channel.eventLoop());
         if (nextChannel == null) {
