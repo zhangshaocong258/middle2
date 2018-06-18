@@ -97,9 +97,7 @@ public class ConsumerServerHandler extends SimpleChannelInboundHandler<FullHttpR
                     .option(ChannelOption.ALLOCATOR, PooledByteBufAllocator.DEFAULT)
                     .handler(new ConsumerClientInitializer());
             ChannelFuture channelFuture = bootstrap.connect(endpoint.getHost(),endpoint.getPort());
-            Channel channel0 = channelFuture.channel();
-            channelMap.put(channel0.eventLoop().toString() + endpoint.toString(),channel);
-            channel.writeAndFlush(request, channel.voidPromise());
+            channelFuture.addListener(new ListenerImpl(request,endpoint));
         } else {
             nextChannel.writeAndFlush(request, nextChannel.voidPromise());
         }
@@ -107,10 +105,10 @@ public class ConsumerServerHandler extends SimpleChannelInboundHandler<FullHttpR
     }
 
     private static final class ListenerImpl implements ChannelFutureListener {
-        private final Object objects;
+        private final AgentRequest agentRequest;
         private final Endpoint endpoint;
-        public ListenerImpl(Object object,Endpoint endpoint) {
-            objects = object;
+        public ListenerImpl(AgentRequest agentRequest,Endpoint endpoint) {
+            this.agentRequest = agentRequest;
             this.endpoint = endpoint;
         }
         @Override
@@ -118,7 +116,7 @@ public class ConsumerServerHandler extends SimpleChannelInboundHandler<FullHttpR
             if (channelFuture.isSuccess()) {
                 Channel channel = channelFuture.channel();
                 channelMap.put(channel.eventLoop().toString() + endpoint.toString(),channel);
-                channel.writeAndFlush(objects, channel.voidPromise());
+                channel.writeAndFlush(agentRequest, channel.voidPromise());
             }
             else {
                 channelFuture.channel().close();

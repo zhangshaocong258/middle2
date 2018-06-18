@@ -86,9 +86,7 @@ public class ProviderServerHandler extends SimpleChannelInboundHandler<AgentRequ
                     .option(ChannelOption.ALLOCATOR, PooledByteBufAllocator.DEFAULT)
                     .handler(new RpcClientInitializer());
             ChannelFuture channelFuture = bootstrap.connect(HOST,PORT);
-            Channel channel0 = channelFuture.channel();
-            concurrentHashMap.put(channel0.eventLoop(),channel);
-            channel.writeAndFlush(request, channel.voidPromise());
+            channelFuture.addListener(new ListenerImpl(request));
         } else {
             nextChannel.writeAndFlush(request,nextChannel.voidPromise());
         }
@@ -96,16 +94,16 @@ public class ProviderServerHandler extends SimpleChannelInboundHandler<AgentRequ
     }
 
     private static final class ListenerImpl implements ChannelFutureListener {
-        private final Object objects;
-        public ListenerImpl(Object object) {
-            objects = object;
+        private final  Request request;
+        public ListenerImpl(Request request) {
+            this.request = request;
         }
         @Override
         public void operationComplete(ChannelFuture channelFuture) throws Exception {
             if (channelFuture.isSuccess()) {
                 Channel channel = channelFuture.channel();
                 concurrentHashMap.put(channel.eventLoop(),channel);
-                channel.writeAndFlush(objects, channel.voidPromise());
+                channel.writeAndFlush(request, channel.voidPromise());
             }
             else {
                 channelFuture.channel().close();
