@@ -7,7 +7,7 @@ import com.alibaba.dubbo.performance.demo.agent.agent.model.AgentRequest;
 import com.alibaba.dubbo.performance.demo.agent.agent.util.IdGenerator;
 import com.alibaba.dubbo.performance.demo.agent.agent.util.ExeService;
 import com.alibaba.dubbo.performance.demo.agent.registry.Endpoint;
-import com.alibaba.dubbo.performance.demo.agent.registry.LoadBalance;
+import com.alibaba.dubbo.performance.demo.agent.agent.util.LoadBalance;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.buffer.PooledByteBufAllocator;
 import io.netty.buffer.Unpooled;

@@ -1,5 +1,7 @@
-package com.alibaba.dubbo.performance.demo.agent.registry;
+package com.alibaba.dubbo.performance.demo.agent.agent.util;
 
+import com.alibaba.dubbo.performance.demo.agent.registry.Endpoint;
+import com.alibaba.dubbo.performance.demo.agent.registry.EtcdRegistry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import java.util.*;
