@@ -39,7 +39,7 @@ public class ProviderServerHandler extends SimpleChannelInboundHandler<AgentRequ
     @Override
     protected void channelRead0(ChannelHandlerContext channelHandlerContext, AgentRequest agentRequest) throws Exception {
         RpcFuture future = invoke(channelHandlerContext, agentRequest);
-        Runnable callable = new Runnable() {
+        Runnable callback = new Runnable() {
             @Override
             public void run() {
                 try {
@@ -52,7 +52,8 @@ public class ProviderServerHandler extends SimpleChannelInboundHandler<AgentRequ
                 }
             }
         };
-        ExeService.execute(callable);
+//        ExeService.execute(callback);
+        future.addListener(callback, channelHandlerContext.channel().eventLoop());
     }
 
     @Override

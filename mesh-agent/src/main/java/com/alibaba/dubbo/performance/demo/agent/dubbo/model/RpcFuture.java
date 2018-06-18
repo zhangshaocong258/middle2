@@ -2,10 +2,16 @@ package com.alibaba.dubbo.performance.demo.agent.dubbo.model;
 
 import java.util.concurrent.*;
 
-public class RpcFuture implements Future<Object> {
-    private CountDownLatch latch = new CountDownLatch(1);
+public class RpcFuture<T> implements Future<T> {
+    private CompletableFuture<T> future = new CompletableFuture<T>();
 
-    private RpcResponse response;
+    public RpcFuture<T> addListener(Runnable listener, Executor executor) {
+        if (executor == null) {
+            executor = Runnable::run;
+        }
+        future.whenCompleteAsync((r,v) -> listener.run(),executor);
+        return this;
+    }
 
     @Override
     public boolean cancel(boolean mayInterruptIfRunning) {
@@ -23,25 +29,16 @@ public class RpcFuture implements Future<Object> {
     }
 
     @Override
-    public Object get() throws InterruptedException {
-         //boolean b = latch.await(100, TimeUnit.MICROSECONDS);
-        latch.await();
-        try {
-            return response.getBytes();
-        }catch (Exception e){
-            e.printStackTrace();
-        }
-        return "Error";
+    public T get() throws InterruptedException, ExecutionException {
+        return future.get();
     }
 
     @Override
-    public Object get(long timeout, TimeUnit unit) throws InterruptedException {
-        boolean b = latch.await(timeout,unit);
-        return response.getBytes();
+    public T get(long timeout, TimeUnit unit) throws InterruptedException, ExecutionException, TimeoutException {
+        return future.get();
     }
 
-    public void done(RpcResponse response){
-        this.response = response;
-        latch.countDown();
+    public void done(T result){
+        future.complete(result);
     }
 }
