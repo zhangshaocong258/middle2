@@ -12,7 +12,7 @@ import io.netty.handler.codec.LengthFieldBasedFrameDecoder;
 import java.io.IOException;
 
 public class MessageDecoder extends LengthFieldBasedFrameDecoder {
-    private static final int MAX_OBJECT_SIZE = 16384;
+    private static final int MAX_OBJECT_SIZE = 16000;
     private byte[] endpointBytes = new byte[8];
     private String id;
     private int executingTasks;

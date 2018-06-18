@@ -7,7 +7,7 @@ import com.alibaba.dubbo.performance.demo.agent.agent.model.AgentRequest;
 import com.alibaba.dubbo.performance.demo.agent.agent.util.IdGenerator;
 import com.alibaba.dubbo.performance.demo.agent.agent.util.ExeService;
 import com.alibaba.dubbo.performance.demo.agent.registry.Endpoint;
-import com.alibaba.dubbo.performance.demo.agent.registry.LoadBalanceChoice;
+import com.alibaba.dubbo.performance.demo.agent.registry.LoadBalance;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.buffer.PooledByteBufAllocator;
 import io.netty.buffer.Unpooled;
@@ -84,7 +84,7 @@ public class ConsumerServerHandler extends SimpleChannelInboundHandler<FullHttpR
         Channel channel = channelHandlerContext.channel();
         AgentFuture<AgentResponse> future = new AgentFuture<>();
         AgentHolder.putRequest(request.getMessageId(), future);
-        Endpoint endpoint = LoadBalanceChoice.weightedrandomChoice();
+        Endpoint endpoint = LoadBalance.weightedrandomChoice();
         request.setEndpoint(endpoint);
         String key = channel.eventLoop().toString() + endpoint.toString();
         Channel nextChannel = channelMap.get(key);

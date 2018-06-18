@@ -13,6 +13,8 @@ import io.netty.bootstrap.Bootstrap;
 import io.netty.buffer.PooledByteBufAllocator;
 import io.netty.channel.*;
 import io.netty.channel.epoll.EpollSocketChannel;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -22,7 +24,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 
 public class ProviderServerHandler extends SimpleChannelInboundHandler<AgentRequest> {
-//    private Logger logger = LoggerFactory.getLogger(ProviderServerHandler.class);
+    private Logger logger = LoggerFactory.getLogger(ProviderServerHandler.class);
     private static final String HOST = "127.0.0.1";
     private static final int PORT = Integer.valueOf(System.getProperty("dubbo.protocol.port"));
     private static ConcurrentHashMap<EventLoop,Channel> concurrentHashMap = new ConcurrentHashMap<>();

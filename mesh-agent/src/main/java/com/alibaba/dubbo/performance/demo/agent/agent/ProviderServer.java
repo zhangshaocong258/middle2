@@ -16,18 +16,18 @@ public class ProviderServer {
     public void bind(int port) throws Exception {
         ExeService.init();
         EventLoopGroup bossGroup = new EpollEventLoopGroup(1);
-        EventLoopGroup workerGroup = new EpollEventLoopGroup(2);
+        EventLoopGroup workerGroup = new EpollEventLoopGroup(4);
         try {
             ServerBootstrap serverBootstrap = new ServerBootstrap();
             serverBootstrap.group(bossGroup,workerGroup)
                     .channel(EpollServerSocketChannel.class)
-                    .option(ChannelOption.SO_BACKLOG,1028)
+                    .option(ChannelOption.SO_BACKLOG,1024)
                     .option(ChannelOption.ALLOCATOR, PooledByteBufAllocator.DEFAULT)
                     .childOption(ChannelOption.ALLOCATOR, PooledByteBufAllocator.DEFAULT)
                     .childOption(ChannelOption.SO_KEEPALIVE,true)
                     .childOption(ChannelOption.TCP_NODELAY,true)
                     .childHandler(new ProviderServerInitializer());
-            ChannelFuture channelFuture = serverBootstrap.bind("0.0.0.0",port).sync();
+            ChannelFuture channelFuture = serverBootstrap.bind(port).sync();
             channelFuture.channel().closeFuture().sync();
         } catch (Exception e) {
           e.printStackTrace();

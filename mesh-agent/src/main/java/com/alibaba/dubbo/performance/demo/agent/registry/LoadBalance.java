@@ -5,7 +5,7 @@ import org.slf4j.LoggerFactory;
 import java.util.*;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
-public class LoadBalanceChoice {
+public class LoadBalance {
     private static Logger logger = LoggerFactory.getLogger(LoggerFactory.class);
     private static EtcdRegistry registry = new EtcdRegistry(System.getProperty("etcd.url"));
     private static List<Endpoint> endpoints;
@@ -24,7 +24,7 @@ public class LoadBalanceChoice {
         }
     }
 
-    private LoadBalanceChoice() {
+    private LoadBalance() {
     }
 
     public static Endpoint weightedrandomChoice() throws Exception {

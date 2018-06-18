@@ -9,8 +9,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class ConsumerClientHandler extends SimpleChannelInboundHandler<AgentResponse> {
-    private Logger logger = LoggerFactory.getLogger(ConsumerClientHandler.class);
-
     @Override
     protected void channelRead0(ChannelHandlerContext channelHandlerContext, AgentResponse agentResponse) throws Exception {
         AgentFuture<AgentResponse> future = AgentHolder.removeRequest(agentResponse.getMessageId());

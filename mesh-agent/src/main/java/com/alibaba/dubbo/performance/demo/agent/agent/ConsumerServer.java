@@ -33,7 +33,7 @@ public class ConsumerServer {
                                     .addLast(new ConsumerServerHandler());
                         }
                         });
-            ChannelFuture future = serverBootstrap.bind("0.0.0.0",port).sync();
+            ChannelFuture future = serverBootstrap.bind(port).sync();
             future.channel().closeFuture().sync();
         } finally {
             boss.shutdownGracefully();

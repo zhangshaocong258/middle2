@@ -13,7 +13,6 @@ import io.netty.handler.codec.MessageToByteEncoder;
 import java.io.IOException;
 
 public class MessageEncoder extends MessageToByteEncoder<Object> {
-//    private Logger logger = LoggerFactory.getLogger(MessageEncoder.class);
     private static final byte[] LENGTH_PLACEHOLDER = new byte[4];
     private static final int REQUEST_FLAG = 0x00;
     private static final int RESPONSE_FLAG= 0x01;

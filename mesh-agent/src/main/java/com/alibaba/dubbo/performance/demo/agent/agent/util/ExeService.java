@@ -5,7 +5,7 @@ import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 
 public class ExeService {
-    private static Executor executor = Executors.newFixedThreadPool(512,Executors.defaultThreadFactory());
+    private static Executor executor = Executors.newFixedThreadPool(256,Executors.defaultThreadFactory());
     private static EtcdRegistry registry = new EtcdRegistry(System.getProperty("etcd.url"));
     private ExeService() {
     }
