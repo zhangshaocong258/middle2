@@ -3,8 +3,15 @@ package com.alibaba.dubbo.performance.demo.agent.agent.model;
 import java.util.concurrent.*;
 
 public class AgentFuture<T> implements Future<T> {
-    private CountDownLatch latch = new CountDownLatch(1);
-    private T result;
+    private CompletableFuture<T> future = new CompletableFuture<T>();
+
+    public AgentFuture<T> addListener(Runnable listener, Executor executor) {
+        if (executor == null) {
+            executor = Runnable::run;
+        }
+        future.whenCompleteAsync((r,v) -> listener.run(),executor);
+        return this;
+    }
 
     @Override
     public boolean cancel(boolean mayInterruptIfRunning) {
@@ -23,18 +30,16 @@ public class AgentFuture<T> implements Future<T> {
 
     @Override
     public T get() throws InterruptedException, ExecutionException {
-        latch.await();
-        return result;
+        return future.get();
     }
 
     @Override
     public T get(long timeout, TimeUnit unit) throws InterruptedException, ExecutionException, TimeoutException {
-        latch.await();
-        return result;
+        return future.get();
     }
 
     public void done(T result){
-        this.result = result;
-        latch.countDown();
+        future.complete(result);
     }
 }
+

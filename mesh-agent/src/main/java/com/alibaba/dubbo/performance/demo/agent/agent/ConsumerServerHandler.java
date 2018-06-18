@@ -64,8 +64,8 @@ public class ConsumerServerHandler extends SimpleChannelInboundHandler<FullHttpR
                 }
             }
         };
-        ExeService.execute(callback);
-//        future.addListener(callback, channelHandlerContext.channel().eventLoop());
+//        ExeService.execute(callback);
+        future.addListener(callback, channelHandlerContext.channel().eventLoop());
 
     }
 
