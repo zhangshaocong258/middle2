@@ -6,7 +6,6 @@ import com.alibaba.dubbo.performance.demo.agent.agent.model.AgentHolder;
 import com.alibaba.dubbo.performance.demo.agent.agent.model.AgentRequest;
 import com.alibaba.dubbo.performance.demo.agent.agent.util.IdGenerator;
 import com.alibaba.dubbo.performance.demo.agent.agent.util.ExeService;
-import com.alibaba.dubbo.performance.demo.agent.agent.util.Limiter;
 import com.alibaba.dubbo.performance.demo.agent.registry.Endpoint;
 import com.alibaba.dubbo.performance.demo.agent.agent.util.LoadBalance;
 import io.netty.bootstrap.Bootstrap;
@@ -49,34 +48,24 @@ public class ConsumerServerHandler extends SimpleChannelInboundHandler<FullHttpR
                 paramMap.get("parameter")
                 );
         Endpoint endpoint = LoadBalance.weightedrandomChoice();
-        if (Limiter.limitMap.get(endpoint).incrementAndGet() <= 200) {
-            AgentFuture<AgentResponse> future = sendRequest(endpoint, agentRequest, channelHandlerContext);
-            Runnable callback = new Runnable() {
-                @Override
-                public void run() {
-                    try {
-                        AgentResponse response = future.get();
-                        writeResponse(fullHttpRequest, fullHttpRequest, channelHandlerContext, (Integer) response.getResultDesc());
-                    } catch (Exception e) {
-                        FullHttpResponse response = new DefaultFullHttpResponse(
-                                HttpVersion.HTTP_1_1, HttpResponseStatus.BAD_REQUEST
-                        );
-                        channelHandlerContext.writeAndFlush(response);
-                        e.printStackTrace();
-                    } finally{
-                        Limiter.limitMap.get(endpoint).decrementAndGet();
-                    }
+        AgentFuture<AgentResponse> future = sendRequest(endpoint, agentRequest, channelHandlerContext);
+        Runnable callback = new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    AgentResponse response = future.get();
+                    writeResponse(fullHttpRequest, fullHttpRequest, channelHandlerContext, (Integer) response.getResultDesc());
+                } catch (Exception e) {
+                    FullHttpResponse response = new DefaultFullHttpResponse(
+                            HttpVersion.HTTP_1_1, HttpResponseStatus.BAD_REQUEST
+                    );
+                    channelHandlerContext.writeAndFlush(response);
+                    e.printStackTrace();
                 }
-            };
-            ExeService.execute(callback);
-            Limiter.limitMap.get(endpoint).decrementAndGet();
-        } else {
-            FullHttpResponse response = new DefaultFullHttpResponse(
-                    HttpVersion.HTTP_1_1, HttpResponseStatus.SERVICE_UNAVAILABLE
-            );
-            channelHandlerContext.writeAndFlush(response);
-            Limiter.limitMap.get(endpoint).decrementAndGet();
-        }
+            }
+        };
+        ExeService.execute(callback);
+//        future.addListener(callback, channelHandlerContext.channel().eventLoop());
 
     }
 

@@ -6,7 +6,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import java.util.*;
 import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.concurrent.atomic.AtomicInteger;
 
 public class LoadBalance {
     private static Logger logger = LoggerFactory.getLogger(LoggerFactory.class);
@@ -65,9 +64,6 @@ public class LoadBalance {
             synchronized (lock) {
                 if (null == endpoints) {
                     endpoints = registry.find(serviceName);
-                    for (Endpoint e : endpoints) {
-                        Limiter.limitMap.put(e, new AtomicInteger(0));
-                    }
                 }
             }
         }
