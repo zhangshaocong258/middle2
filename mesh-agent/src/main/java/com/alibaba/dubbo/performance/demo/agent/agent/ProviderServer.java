@@ -3,6 +3,7 @@ package com.alibaba.dubbo.performance.demo.agent.agent;/**
  */
 
 import com.alibaba.dubbo.performance.demo.agent.agent.serialize.*;
+import com.alibaba.dubbo.performance.demo.agent.agent.util.WaitService;
 import com.alibaba.dubbo.performance.demo.agent.registry.EtcdRegistry;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.buffer.PooledByteBufAllocator;
@@ -21,10 +22,10 @@ import io.netty.channel.socket.SocketChannel;
  * @create: 2018-05-16 20:18
  **/
 
-public class ProviderAgentServer {
+public class ProviderServer {
     private static EtcdRegistry registry = new EtcdRegistry(System.getProperty("etcd.url"));
     public void bind(int port) throws Exception {
-        InvokeService.init();
+        WaitService.init();
         //  默认线程数 为 2 * cpu个数
         EventLoopGroup bossGroup = new EpollEventLoopGroup(2);
         EventLoopGroup workerGroup = new EpollEventLoopGroup();

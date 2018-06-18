@@ -7,6 +7,7 @@ package com.alibaba.dubbo.performance.demo.agent.agent;/**
 import com.alibaba.dubbo.performance.demo.agent.agent.model.AgentFuture;
 import com.alibaba.dubbo.performance.demo.agent.agent.model.MessageRequest;
 import com.alibaba.dubbo.performance.demo.agent.agent.model.MessageResponse;
+import com.alibaba.dubbo.performance.demo.agent.agent.util.WaitService;
 import com.alibaba.dubbo.performance.demo.agent.dubbo.RpcClientInitializer;
 import com.alibaba.dubbo.performance.demo.agent.dubbo.model.*;
 import com.alibaba.dubbo.performance.demo.agent.registry.Endpoint;
@@ -53,6 +54,7 @@ public class ProviderServerHandler extends SimpleChannelInboundHandler<MessageRe
     protected void channelRead0(ChannelHandlerContext channelHandlerContext, MessageRequest messageRequest) throws Exception {
 //        concurrentHashMap.put(messageRequest.getMessageId(),Thread.currentThread().getName());
         RpcFuture future = invoke(channelHandlerContext,messageRequest);
+        Runnable callable = () -> {
             try {
                 Integer result = JSON.parseObject((byte[]) future.get(),Integer.class);
                 MessageResponse response = new MessageResponse(messageRequest.getMessageId(),result,endpoint,RpcRequestHolder.getSize());
@@ -61,7 +63,8 @@ public class ProviderServerHandler extends SimpleChannelInboundHandler<MessageRe
                 channelHandlerContext.writeAndFlush(new MessageResponse(messageRequest.getMessageId(),"-1",endpoint,RpcRequestHolder.getSize()));
                 e.printStackTrace();
             }
-
+        };
+        WaitService.execute(callable);
 //        future.addListener(callable,channelHandlerContext.channel().eventLoop());
     }
 

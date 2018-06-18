@@ -7,6 +7,7 @@ import com.alibaba.dubbo.performance.demo.agent.agent.model.Holder;
 import com.alibaba.dubbo.performance.demo.agent.agent.model.MessageRequest;
 import com.alibaba.dubbo.performance.demo.agent.agent.model.MessageResponse;
 import com.alibaba.dubbo.performance.demo.agent.agent.util.IdGenerator;
+import com.alibaba.dubbo.performance.demo.agent.agent.util.WaitService;
 import com.alibaba.dubbo.performance.demo.agent.registry.Endpoint;
 import com.alibaba.dubbo.performance.demo.agent.registry.LoadBalanceChoice;
 import io.netty.bootstrap.Bootstrap;
@@ -56,6 +57,7 @@ public class ConsumerServerHandler extends SimpleChannelInboundHandler<FullHttpR
                 IdGenerator.getIdByIncrement(),paramMap.get("interface"),paramMap.get("method"),paramMap.get("parameterTypesString"),paramMap.get("parameter")
                 );
         AgentFuture<MessageResponse> future = sendRequest("com.alibaba.dubbo.performance.demo.provider.IHelloService",messageRequest,channelHandlerContext);
+        Runnable callback = () -> {
             try {
                 MessageResponse response = future.get();
 //                long time = System.nanoTime();
@@ -72,6 +74,8 @@ public class ConsumerServerHandler extends SimpleChannelInboundHandler<FullHttpR
                 channelHandlerContext.writeAndFlush(response);
                 e.printStackTrace();
             }
+        };
+        WaitService.execute(callback);
 
         // executor为null 将交给channel的绑定的eventLoop执行
 //        future.addListener(runnable,channelHandlerContext.channel().eventLoop());

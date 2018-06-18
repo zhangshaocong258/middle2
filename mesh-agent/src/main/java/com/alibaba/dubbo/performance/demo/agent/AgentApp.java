@@ -1,7 +1,7 @@
 package com.alibaba.dubbo.performance.demo.agent;
 
 import com.alibaba.dubbo.performance.demo.agent.agent.ConsumerServer;
-import com.alibaba.dubbo.performance.demo.agent.agent.ProviderAgentServer;
+import com.alibaba.dubbo.performance.demo.agent.agent.ProviderServer;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication
@@ -14,7 +14,7 @@ public class AgentApp {
         String type = System.getProperty("type");
         int port = Integer.parseInt(System.getProperty("server.port"));
         if ("provider".equals(type)) {
-            new ProviderAgentServer().bind(port);
+            new ProviderServer().bind(port);
         } else if ("consumer".equals(type)) {
 //            SpringApplication.run(AgentApp.class, args);
             new ConsumerServer().bind(port);
