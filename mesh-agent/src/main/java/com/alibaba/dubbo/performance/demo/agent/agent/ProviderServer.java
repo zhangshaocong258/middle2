@@ -13,7 +13,7 @@ import io.netty.channel.epoll.EpollServerSocketChannel;
 import io.netty.channel.socket.SocketChannel;
 
 public class ProviderServer {
-    public void bind(int port) throws Exception {
+    public void start(int port) throws Exception {
         ExeService.init();
         EventLoopGroup bossGroup = new EpollEventLoopGroup(1);
         EventLoopGroup workerGroup = new EpollEventLoopGroup(4);

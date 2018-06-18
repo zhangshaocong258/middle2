@@ -14,10 +14,9 @@ public class AgentApp {
         String type = System.getProperty("type");
         int port = Integer.parseInt(System.getProperty("server.port"));
         if ("provider".equals(type)) {
-            new ProviderServer().bind(port);
+            new ProviderServer().start(port);
         } else if ("consumer".equals(type)) {
-//            SpringApplication.run(AgentApp.class, args);
-            new ConsumerServer().bind(port);
+            new ConsumerServer().start(port);
         }
     }
 }

@@ -6,6 +6,7 @@ import com.alibaba.dubbo.performance.demo.agent.agent.model.AgentHolder;
 import com.alibaba.dubbo.performance.demo.agent.agent.model.AgentRequest;
 import com.alibaba.dubbo.performance.demo.agent.agent.util.IdGenerator;
 import com.alibaba.dubbo.performance.demo.agent.agent.util.ExeService;
+import com.alibaba.dubbo.performance.demo.agent.agent.util.Limiter;
 import com.alibaba.dubbo.performance.demo.agent.registry.Endpoint;
 import com.alibaba.dubbo.performance.demo.agent.agent.util.LoadBalance;
 import io.netty.bootstrap.Bootstrap;
@@ -47,23 +48,36 @@ public class ConsumerServerHandler extends SimpleChannelInboundHandler<FullHttpR
                 paramMap.get("parameterTypesString"),
                 paramMap.get("parameter")
                 );
-        AgentFuture<AgentResponse> future = sendRequest(agentRequest,channelHandlerContext);
-        Runnable callback = new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    AgentResponse response = future.get();
-                    writeResponse(fullHttpRequest,fullHttpRequest,channelHandlerContext, (Integer) response.getResultDesc());
-                } catch (Exception e) {
-                    FullHttpResponse response = new DefaultFullHttpResponse(
-                            HttpVersion.HTTP_1_1,HttpResponseStatus.BAD_REQUEST
-                    );
-                    channelHandlerContext.writeAndFlush(response);
-                    e.printStackTrace();
+        Endpoint endpoint = LoadBalance.weightedrandomChoice();
+        if (Limiter.limitMap.get(endpoint).incrementAndGet() <= 200) {
+            AgentFuture<AgentResponse> future = sendRequest(endpoint, agentRequest, channelHandlerContext);
+            Runnable callback = new Runnable() {
+                @Override
+                public void run() {
+                    try {
+                        AgentResponse response = future.get();
+                        writeResponse(fullHttpRequest, fullHttpRequest, channelHandlerContext, (Integer) response.getResultDesc());
+                    } catch (Exception e) {
+                        FullHttpResponse response = new DefaultFullHttpResponse(
+                                HttpVersion.HTTP_1_1, HttpResponseStatus.BAD_REQUEST
+                        );
+                        channelHandlerContext.writeAndFlush(response);
+                        e.printStackTrace();
+                    } finally{
+                        Limiter.limitMap.get(endpoint).decrementAndGet();
+                    }
                 }
-            }
-        };
-        ExeService.execute(callback);
+            };
+            ExeService.execute(callback);
+            Limiter.limitMap.get(endpoint).decrementAndGet();
+        } else {
+            FullHttpResponse response = new DefaultFullHttpResponse(
+                    HttpVersion.HTTP_1_1, HttpResponseStatus.SERVICE_UNAVAILABLE
+            );
+            channelHandlerContext.writeAndFlush(response);
+            Limiter.limitMap.get(endpoint).decrementAndGet();
+        }
+
     }
 
     private boolean writeResponse(HttpRequest request,HttpObject httpObject, ChannelHandlerContext ctx, int data) {
@@ -80,11 +94,10 @@ public class ConsumerServerHandler extends SimpleChannelInboundHandler<FullHttpR
         ctx.writeAndFlush(response,ctx.voidPromise());
         return keepAlive;
     }
-    private AgentFuture<AgentResponse> sendRequest(AgentRequest request, ChannelHandlerContext channelHandlerContext) throws Exception {
+    private AgentFuture<AgentResponse> sendRequest(Endpoint endpoint, AgentRequest request, ChannelHandlerContext channelHandlerContext) throws Exception {
         Channel channel = channelHandlerContext.channel();
         AgentFuture<AgentResponse> future = new AgentFuture<>();
         AgentHolder.putRequest(request.getMessageId(), future);
-        Endpoint endpoint = LoadBalance.weightedrandomChoice();
         request.setEndpoint(endpoint);
         String key = channel.eventLoop().toString() + endpoint.toString();
         Channel nextChannel = channelMap.get(key);

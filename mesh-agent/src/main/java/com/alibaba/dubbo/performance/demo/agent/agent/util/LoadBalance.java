@@ -6,6 +6,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import java.util.*;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class LoadBalance {
     private static Logger logger = LoggerFactory.getLogger(LoggerFactory.class);
@@ -39,7 +40,7 @@ public class LoadBalance {
                     arrayList.add(e);
                 }
             }
-            Collections.shuffle(arrayList);
+            Collections.sort(arrayList, COMPARATOR);
             if (queue.isEmpty()) {
                 queue = new ConcurrentLinkedQueue(arrayList);
             }
@@ -48,12 +49,25 @@ public class LoadBalance {
         return endpoint;
     }
 
+    private static final Comparator<Endpoint> COMPARATOR = new Comparator<Endpoint>() {
+        public int compare(Endpoint o1, Endpoint o2) {
+            if (o1.getWeight() < (o2.getWeight())) {
+                return 1;
+            } else {
+                return -1;
+            }
+        }
+    };
+
 
     private static void checkEndpoint(String serviceName) throws Exception {
         if (null == endpoints) {
             synchronized (lock) {
                 if (null == endpoints) {
                     endpoints = registry.find(serviceName);
+                    for (Endpoint e : endpoints) {
+                        Limiter.limitMap.put(e, new AtomicInteger(0));
+                    }
                 }
             }
         }

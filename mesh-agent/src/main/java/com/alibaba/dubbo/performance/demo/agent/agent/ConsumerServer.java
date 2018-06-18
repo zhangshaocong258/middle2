@@ -14,7 +14,7 @@ import io.netty.handler.codec.http.HttpServerCodec;
 
 
 public class ConsumerServer {
-    public void bind(final int port) throws Exception {
+    public void start(final int port) throws Exception {
         EventLoopGroup boss = new EpollEventLoopGroup(1);
         EventLoopGroup worker = new EpollEventLoopGroup(8);
         ServerBootstrap serverBootstrap = new ServerBootstrap().group(boss,worker);
