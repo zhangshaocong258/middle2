@@ -1,21 +1,15 @@
 package com.alibaba.dubbo.performance.demo.agent.agent.serialize;
 
 import com.alibaba.dubbo.performance.demo.agent.agent.model.*;
-import com.alibaba.dubbo.performance.demo.agent.agent.util.Common;
+import com.alibaba.dubbo.performance.demo.agent.agent.util.CodeUtil;
 import com.alibaba.dubbo.performance.demo.agent.registry.Endpoint;
 import com.esotericsoftware.kryo.pool.KryoPool;
-import com.sun.org.apache.regexp.internal.RE;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufInputStream;
 import io.netty.channel.ChannelHandlerContext;
-import io.netty.handler.codec.ByteToMessageDecoder;
 import io.netty.handler.codec.LengthFieldBasedFrameDecoder;
-import io.netty.handler.codec.serialization.ObjectDecoder;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.util.List;
 
 public class MessageDecoder extends LengthFieldBasedFrameDecoder {
     private static final int MAX_OBJECT_SIZE = 16384;
@@ -51,20 +45,20 @@ public class MessageDecoder extends LengthFieldBasedFrameDecoder {
         executingTasks = ((int) in.readByte() & 0xff);
         id = String.valueOf(in.readInt());
         in.readBytes(endpointBytes);
-        endpoint = Common.bytes2endpoint(endpointBytes);
+        endpoint = CodeUtil.bytes2endpoint(endpointBytes);
         in.skipBytes(4);
         if ((status & 0x01) == 0x00) {
             ByteBufInputStream bufInputStream = new ByteBufInputStream(in,true);
-            Invocation invocation = null;
+            AgentInvocation agentInvocation = null;
             try {
-                invocation = (Invocation) kryoSerialize.deserialize(bufInputStream);
+                agentInvocation = (AgentInvocation) kryoSerialize.deserialize(bufInputStream);
             } finally {
                 bufInputStream.close();
             }
-            if (invocation != null) {
-                MessageRequest request = new MessageRequest(
-                        id, invocation.getInterfaceName(), invocation.getMethod(),
-                        invocation.getParameterTypesString(), invocation.getParameter(), endpoint
+            if (agentInvocation != null) {
+                AgentRequest request = new AgentRequest(
+                        id, agentInvocation.getInterfaceName(), agentInvocation.getMethod(),
+                        agentInvocation.getParameterTypesString(), agentInvocation.getParameter(), endpoint
                 );
                 return request;
             } else {
@@ -72,7 +66,7 @@ public class MessageDecoder extends LengthFieldBasedFrameDecoder {
             }
         } else {
             int data = in.readInt();
-            MessageResponse response = new MessageResponse(
+            AgentResponse response = new AgentResponse(
                     id,data,endpoint,executingTasks
             );
             in.release();

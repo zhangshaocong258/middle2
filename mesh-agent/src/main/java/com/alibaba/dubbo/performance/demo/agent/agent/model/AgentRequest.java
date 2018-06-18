@@ -5,7 +5,7 @@ import com.alibaba.dubbo.performance.demo.agent.registry.Endpoint;
 import java.io.Serializable;
 
 
-public class MessageRequest implements Serializable{
+public class AgentRequest implements Serializable{
     private String messageId;
     private String interfaceName;
     private String method;
@@ -13,10 +13,9 @@ public class MessageRequest implements Serializable{
     private String parameter;
     private Endpoint endpoint;
     private int executingTask;
-    public MessageRequest() {
-    }
 
-    public MessageRequest(String messageId, String interfaceName, String method, String parameterTypesString, String parameter,Endpoint endpoint) {
+
+    public AgentRequest(String messageId, String interfaceName, String method, String parameterTypesString, String parameter, Endpoint endpoint) {
         this.messageId = messageId;
         this.interfaceName = interfaceName;
         this.method = method;
@@ -26,7 +25,7 @@ public class MessageRequest implements Serializable{
         this.executingTask = 0;
     }
 
-    public MessageRequest(String messageId, String interfaceName, String method, String parameterTypesString, String parameter) {
+    public AgentRequest(String messageId, String interfaceName, String method, String parameterTypesString, String parameter) {
         this.messageId = messageId;
         this.interfaceName = interfaceName;
         this.method = method;
@@ -70,7 +69,7 @@ public class MessageRequest implements Serializable{
 
     @Override
     public String toString() {
-        return "MessageRequest{" +
+        return "AgentRequest{" +
                 "messageId='" + messageId + '\'' +
                 ", interfaceName='" + interfaceName + '\'' +
                 ", method='" + method + '\'' +

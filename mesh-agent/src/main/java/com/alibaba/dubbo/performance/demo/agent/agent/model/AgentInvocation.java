@@ -1,12 +1,12 @@
 package com.alibaba.dubbo.performance.demo.agent.agent.model;
 
-public class Invocation {
+public class AgentInvocation {
     private String interfaceName;
     private String method;
     private String parameterTypesString;
     private String parameter;
 
-    public Invocation(String interfaceName, String method, String parameterTypesString, String parameter) {
+    public AgentInvocation(String interfaceName, String method, String parameterTypesString, String parameter) {
         this.interfaceName = interfaceName;
         this.method = method;
         this.parameterTypesString = parameterTypesString;

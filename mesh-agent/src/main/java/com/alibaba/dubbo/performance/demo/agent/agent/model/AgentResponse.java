@@ -5,27 +5,18 @@ import com.alibaba.dubbo.performance.demo.agent.registry.Endpoint;
 import java.io.Serializable;
 
 
-public class MessageResponse implements Serializable {
+public class AgentResponse implements Serializable {
     private String messageId;
     private Object resultDesc;
     private Endpoint endpoint;
     private int executingTask;
-    public MessageResponse(String messageId, Object resultDesc) {
-        this.messageId = messageId;
-        this.resultDesc = resultDesc;
-    }
 
-    public MessageResponse(String messageId, Object resultDesc, Endpoint endpoint, int executingTask) {
+    public AgentResponse(String messageId, Object resultDesc, Endpoint endpoint, int executingTask) {
         this.messageId = messageId;
         this.resultDesc = resultDesc;
         this.endpoint = endpoint;
         this.executingTask = executingTask;
     }
-
-    public MessageResponse() {
-    }
-
-
 
     public int getExecutingTask() {
         return executingTask;
@@ -53,7 +44,7 @@ public class MessageResponse implements Serializable {
 
     @Override
     public String toString() {
-        return "MessageResponse{" +
+        return "AgentResponse{" +
                 "messageId='" + messageId + '\'' +
                 ", resultDesc=" + resultDesc +
                 '}';

@@ -1,8 +1,8 @@
 package com.alibaba.dubbo.performance.demo.agent.agent;
 
 
-import com.alibaba.dubbo.performance.demo.agent.agent.model.MessageRequest;
-import com.alibaba.dubbo.performance.demo.agent.agent.model.MessageResponse;
+import com.alibaba.dubbo.performance.demo.agent.agent.model.AgentRequest;
+import com.alibaba.dubbo.performance.demo.agent.agent.model.AgentResponse;
 import com.alibaba.dubbo.performance.demo.agent.agent.util.ExeService;
 import com.alibaba.dubbo.performance.demo.agent.dubbo.RpcClientInitializer;
 import com.alibaba.dubbo.performance.demo.agent.dubbo.model.*;
@@ -21,7 +21,7 @@ import java.io.PrintWriter;
 import java.util.concurrent.ConcurrentHashMap;
 
 
-public class ProviderServerHandler extends SimpleChannelInboundHandler<MessageRequest> {
+public class ProviderServerHandler extends SimpleChannelInboundHandler<AgentRequest> {
 //    private Logger logger = LoggerFactory.getLogger(ProviderServerHandler.class);
     private static final String HOST = "127.0.0.1";
     private static final int PORT = Integer.valueOf(System.getProperty("dubbo.protocol.port"));
@@ -35,17 +35,17 @@ public class ProviderServerHandler extends SimpleChannelInboundHandler<MessageRe
         }
     }
     @Override
-    protected void channelRead0(ChannelHandlerContext channelHandlerContext, MessageRequest messageRequest) throws Exception {
-        RpcFuture future = invoke(channelHandlerContext,messageRequest);
+    protected void channelRead0(ChannelHandlerContext channelHandlerContext, AgentRequest agentRequest) throws Exception {
+        RpcFuture future = invoke(channelHandlerContext, agentRequest);
         Runnable callable = new Runnable() {
             @Override
             public void run() {
                 try {
                     Integer result = JSON.parseObject((byte[]) future.get(),Integer.class);
-                    MessageResponse response = new MessageResponse(messageRequest.getMessageId(),result,endpoint,RpcRequestHolder.getSize());
+                    AgentResponse response = new AgentResponse(agentRequest.getMessageId(),result,endpoint,RpcRequestHolder.getSize());
                     channelHandlerContext.writeAndFlush(response,channelHandlerContext.voidPromise());
                 } catch (Exception e) {
-                    channelHandlerContext.writeAndFlush(new MessageResponse(messageRequest.getMessageId(),"-1",endpoint,RpcRequestHolder.getSize()));
+                    channelHandlerContext.writeAndFlush(new AgentResponse(agentRequest.getMessageId(),"-1",endpoint,RpcRequestHolder.getSize()));
                     e.printStackTrace();
                 }
             }
@@ -58,16 +58,16 @@ public class ProviderServerHandler extends SimpleChannelInboundHandler<MessageRe
         cause.printStackTrace();
     }
 
-    private RpcFuture invoke(ChannelHandlerContext channelHandlerContext,MessageRequest messageRequest) throws IOException {
-        final Channel channel = channelHandlerContext.channel();
+    private RpcFuture invoke(ChannelHandlerContext channelHandlerContext,AgentRequest agentRequest) throws IOException {
+        Channel channel = channelHandlerContext.channel();
         RpcInvocation invocation = new RpcInvocation();
-        invocation.setMethodName(messageRequest.getMethod());
-        invocation.setAttachment("path", messageRequest.getInterfaceName());
-        invocation.setParameterTypes(messageRequest.getParameterTypesString());    // Dubbo内部用"Ljava/lang/String"来表示参数类型是String
+        invocation.setMethodName(agentRequest.getMethod());
+        invocation.setAttachment("path", agentRequest.getInterfaceName());
+        invocation.setParameterTypes(agentRequest.getParameterTypesString());    // Dubbo内部用"Ljava/lang/String"来表示参数类型是String
 
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         PrintWriter writer = new PrintWriter(new OutputStreamWriter(out));
-        JsonUtils.writeObject(messageRequest.getParameter(), writer);
+        JsonUtils.writeObject(agentRequest.getParameter(), writer);
         invocation.setArguments(out.toByteArray());
 
         Request request = new Request();
@@ -86,7 +86,9 @@ public class ProviderServerHandler extends SimpleChannelInboundHandler<MessageRe
                     .option(ChannelOption.ALLOCATOR, PooledByteBufAllocator.DEFAULT)
                     .handler(new RpcClientInitializer());
             ChannelFuture channelFuture = bootstrap.connect(HOST,PORT);
-            channelFuture.addListener(new ListenerImpl(request));
+            Channel channel0 = channelFuture.channel();
+            concurrentHashMap.put(channel0.eventLoop(),channel);
+            channel.writeAndFlush(request, channel.voidPromise());
         } else {
             nextChannel.writeAndFlush(request,nextChannel.voidPromise());
         }

@@ -1,21 +1,21 @@
 package com.alibaba.dubbo.performance.demo.agent.agent;
 
 import com.alibaba.dubbo.performance.demo.agent.agent.model.AgentFuture;
-import com.alibaba.dubbo.performance.demo.agent.agent.model.Holder;
-import com.alibaba.dubbo.performance.demo.agent.agent.model.MessageResponse;
+import com.alibaba.dubbo.performance.demo.agent.agent.model.AgentResponse;
+import com.alibaba.dubbo.performance.demo.agent.agent.model.AgentHolder;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class ConsumerClientHandler extends SimpleChannelInboundHandler<MessageResponse> {
+public class ConsumerClientHandler extends SimpleChannelInboundHandler<AgentResponse> {
     private Logger logger = LoggerFactory.getLogger(ConsumerClientHandler.class);
 
     @Override
-    protected void channelRead0(ChannelHandlerContext channelHandlerContext, MessageResponse messageResponse) throws Exception {
-        AgentFuture<MessageResponse> future = Holder.removeRequest(messageResponse.getMessageId());
+    protected void channelRead0(ChannelHandlerContext channelHandlerContext, AgentResponse agentResponse) throws Exception {
+        AgentFuture<AgentResponse> future = AgentHolder.removeRequest(agentResponse.getMessageId());
         if (future != null) {
-            future.done(messageResponse);
+            future.done(agentResponse);
 
         }
     }

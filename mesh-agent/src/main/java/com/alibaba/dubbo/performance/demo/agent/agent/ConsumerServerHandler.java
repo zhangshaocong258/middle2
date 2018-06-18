@@ -1,9 +1,9 @@
 package com.alibaba.dubbo.performance.demo.agent.agent;
 
 import com.alibaba.dubbo.performance.demo.agent.agent.model.AgentFuture;
-import com.alibaba.dubbo.performance.demo.agent.agent.model.Holder;
-import com.alibaba.dubbo.performance.demo.agent.agent.model.MessageRequest;
-import com.alibaba.dubbo.performance.demo.agent.agent.model.MessageResponse;
+import com.alibaba.dubbo.performance.demo.agent.agent.model.AgentResponse;
+import com.alibaba.dubbo.performance.demo.agent.agent.model.AgentHolder;
+import com.alibaba.dubbo.performance.demo.agent.agent.model.AgentRequest;
 import com.alibaba.dubbo.performance.demo.agent.agent.util.IdGenerator;
 import com.alibaba.dubbo.performance.demo.agent.agent.util.ExeService;
 import com.alibaba.dubbo.performance.demo.agent.registry.Endpoint;
@@ -40,19 +40,19 @@ public class ConsumerServerHandler extends SimpleChannelInboundHandler<FullHttpR
             Attribute attribute = (Attribute) data;
             paramMap.put(attribute.getName(),attribute.getValue());
         }
-        MessageRequest messageRequest = new MessageRequest(
+        AgentRequest agentRequest = new AgentRequest(
                 IdGenerator.getIdAndIncrement(),
                 paramMap.get("interface"),
                 paramMap.get("method"),
                 paramMap.get("parameterTypesString"),
                 paramMap.get("parameter")
                 );
-        AgentFuture<MessageResponse> future = sendRequest(messageRequest,channelHandlerContext);
+        AgentFuture<AgentResponse> future = sendRequest(agentRequest,channelHandlerContext);
         Runnable callback = new Runnable() {
             @Override
             public void run() {
                 try {
-                    MessageResponse response = future.get();
+                    AgentResponse response = future.get();
                     writeResponse(fullHttpRequest,fullHttpRequest,channelHandlerContext, (Integer) response.getResultDesc());
                 } catch (Exception e) {
                     FullHttpResponse response = new DefaultFullHttpResponse(
@@ -80,10 +80,10 @@ public class ConsumerServerHandler extends SimpleChannelInboundHandler<FullHttpR
         ctx.writeAndFlush(response,ctx.voidPromise());
         return keepAlive;
     }
-    private AgentFuture<MessageResponse> sendRequest(MessageRequest request, ChannelHandlerContext channelHandlerContext) throws Exception {
-        final Channel channel = channelHandlerContext.channel();
-        AgentFuture<MessageResponse> future = new AgentFuture<>();
-        Holder.putRequest(request.getMessageId(), future);
+    private AgentFuture<AgentResponse> sendRequest(AgentRequest request, ChannelHandlerContext channelHandlerContext) throws Exception {
+        Channel channel = channelHandlerContext.channel();
+        AgentFuture<AgentResponse> future = new AgentFuture<>();
+        AgentHolder.putRequest(request.getMessageId(), future);
         Endpoint endpoint = LoadBalanceChoice.weightedrandomChoice();
         request.setEndpoint(endpoint);
         String key = channel.eventLoop().toString() + endpoint.toString();
@@ -97,7 +97,9 @@ public class ConsumerServerHandler extends SimpleChannelInboundHandler<FullHttpR
                     .option(ChannelOption.ALLOCATOR, PooledByteBufAllocator.DEFAULT)
                     .handler(new ConsumerClientInitializer());
             ChannelFuture channelFuture = bootstrap.connect(endpoint.getHost(),endpoint.getPort());
-            channelFuture.addListener(new ListenerImpl(request,endpoint));
+            Channel channel0 = channelFuture.channel();
+            channelMap.put(channel0.eventLoop().toString() + endpoint.toString(),channel);
+            channel.writeAndFlush(request, channel.voidPromise());
         } else {
             nextChannel.writeAndFlush(request, nextChannel.voidPromise());
         }

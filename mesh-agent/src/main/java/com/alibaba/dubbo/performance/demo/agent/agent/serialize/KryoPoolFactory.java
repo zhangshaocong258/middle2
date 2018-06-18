@@ -1,6 +1,6 @@
 package com.alibaba.dubbo.performance.demo.agent.agent.serialize;
 
-import com.alibaba.dubbo.performance.demo.agent.agent.model.Invocation;
+import com.alibaba.dubbo.performance.demo.agent.agent.model.AgentInvocation;
 import com.esotericsoftware.kryo.Kryo;
 import com.esotericsoftware.kryo.pool.KryoFactory;
 import com.esotericsoftware.kryo.pool.KryoPool;
@@ -26,7 +26,7 @@ public class KryoPoolFactory {
             Kryo kryo = new Kryo();
             kryo.setReferences(false);
 
-            kryo.register(Invocation.class);
+            kryo.register(AgentInvocation.class);
             kryo.setInstantiatorStrategy(new StdInstantiatorStrategy());
             return kryo;
         }
