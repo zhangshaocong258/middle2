@@ -18,14 +18,13 @@ import java.io.OutputStream;
  * @create: 2018-05-18 15:40
  **/
 
-public class KryoSerialize implements MessageSerialize {
+public class KryoSerialize {
     private KryoPool pool = null;
 
     public KryoSerialize(final KryoPool pool) {
         this.pool = pool;
     }
 
-    @Override
     public void serialize(OutputStream outputStream, Object object) throws IOException {
         Kryo kryo = pool.borrow();
         Output output = new Output(outputStream);
@@ -34,7 +33,6 @@ public class KryoSerialize implements MessageSerialize {
         pool.release(kryo);
     }
 
-    @Override
     public Object deserialize(InputStream inputStream) throws IOException {
         Kryo kryo = pool.borrow();
         Input input = new Input(inputStream);

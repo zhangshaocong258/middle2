@@ -2,7 +2,6 @@ package com.alibaba.dubbo.performance.demo.agent.agent.model;/**
  * Created by msi- on 2018/5/13.
  */
 
-import com.alibaba.dubbo.performance.demo.agent.agent.balance.Agent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

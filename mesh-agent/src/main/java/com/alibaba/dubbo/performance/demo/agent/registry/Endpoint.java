@@ -3,7 +3,6 @@ package com.alibaba.dubbo.performance.demo.agent.registry;
 public class Endpoint {
     private final String host;
     private final int port;
-    private static final Endpoint empty = new Endpoint("",0);
     public Endpoint(String host,int port){
         this.host = host;
         this.port = port;
@@ -29,9 +28,6 @@ public class Endpoint {
         return other.host.equals(this.host) && other.port == this.port;
     }
 
-    public static Endpoint emptyEndpoint() {
-        return empty;
-    }
     public int hashCode(){
         return host.hashCode() + port;
     }

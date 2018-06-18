@@ -20,9 +20,21 @@ import java.util.HashMap;
  **/
 
 public class KryoPoolFactory {
-    private static KryoPoolFactory poolFactory = null;
 
-    private KryoFactory factory = () ->{
+    private KryoPoolFactory() {
+    }
+
+    private static class Holder {
+        private static KryoPoolFactory poolFactory = new KryoPoolFactory();
+    }
+
+    public static KryoPool getKryoPoolInstance() {
+        return Holder.poolFactory.getPool();
+    }
+
+    private KryoFactory factory = new KryoFactory() {
+        @Override
+        public Kryo create() {
             Kryo kryo = new Kryo();
             kryo.setReferences(false);
             //把已知的结构注册到Kryo注册器里面,提高序列化/反序列化效率
@@ -31,22 +43,10 @@ public class KryoPoolFactory {
             kryo.register(Invocation.class);
             kryo.setInstantiatorStrategy(new StdInstantiatorStrategy());
             return kryo;
-    };
-    private KryoPool pool = new KryoPool.Builder(factory).build();
-    private KryoPoolFactory() {
-
-    }
-
-    public static KryoPool getKryoPoolInstance() {
-        if (poolFactory == null) {
-            synchronized (KryoPoolFactory.class) {
-                if (poolFactory == null) {
-                    poolFactory = new KryoPoolFactory();
-                }
-            }
         }
-        return poolFactory.getPool();
-    }
+    };
+
+    private KryoPool pool = new KryoPool.Builder(factory).build();
 
     public KryoPool getPool() {
         return pool;
