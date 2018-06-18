@@ -53,12 +53,12 @@ public class MessageDecoder extends LengthFieldBasedFrameDecoder {
         } else {
             try {
                 Object response = decodeData(byteBuf);
-                if (response instanceof MessageResponse) {
-                  MessageFuture future = Holder.removeRequest(((MessageResponse) response).getMessageId());
-                  if (future!=null) {
-                      future.done(response);
-                  }
-                }
+//                if (response instanceof MessageResponse) {
+//                  MessageFuture future = Holder.removeRequest(((MessageResponse) response).getMessageId());
+//                  if (future!=null) {
+//                      future.done(response);
+//                  }
+//                }
                 return response;
             } catch (IOException e) {
                 e.printStackTrace();
