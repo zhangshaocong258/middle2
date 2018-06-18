@@ -1,17 +1,9 @@
-package com.alibaba.dubbo.performance.demo.agent.agent.model;/**
- * Created by msi- on 2018/5/13.
- */
+package com.alibaba.dubbo.performance.demo.agent.agent.model;
 
 import com.alibaba.dubbo.performance.demo.agent.registry.Endpoint;
 
 import java.io.Serializable;
 
-/**
- * @program: TcpProject
- * @description:
- * @author: XSL
- * @create: 2018-05-13 15:47
- **/
 
 public class MessageRequest implements Serializable{
     private String messageId;
@@ -21,7 +13,6 @@ public class MessageRequest implements Serializable{
     private String parameter;
     private Endpoint endpoint;
     private int executingTask;
-//    private long sendTime = System.nanoTime();
     public MessageRequest() {
     }
 

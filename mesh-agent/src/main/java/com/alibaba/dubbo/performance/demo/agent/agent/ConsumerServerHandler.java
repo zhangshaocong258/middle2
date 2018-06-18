@@ -1,13 +1,11 @@
-package com.alibaba.dubbo.performance.demo.agent.agent;/**
- * Created by msi- on 2018/5/18.
- */
+package com.alibaba.dubbo.performance.demo.agent.agent;
 
 import com.alibaba.dubbo.performance.demo.agent.agent.model.AgentFuture;
 import com.alibaba.dubbo.performance.demo.agent.agent.model.Holder;
 import com.alibaba.dubbo.performance.demo.agent.agent.model.MessageRequest;
 import com.alibaba.dubbo.performance.demo.agent.agent.model.MessageResponse;
 import com.alibaba.dubbo.performance.demo.agent.agent.util.IdGenerator;
-import com.alibaba.dubbo.performance.demo.agent.agent.util.WaitService;
+import com.alibaba.dubbo.performance.demo.agent.agent.util.ExeService;
 import com.alibaba.dubbo.performance.demo.agent.registry.Endpoint;
 import com.alibaba.dubbo.performance.demo.agent.registry.LoadBalanceChoice;
 import io.netty.bootstrap.Bootstrap;
@@ -29,22 +27,11 @@ import java.util.concurrent.ConcurrentHashMap;
 import static org.springframework.http.HttpHeaders.CONTENT_LENGTH;
 import static org.springframework.http.HttpHeaders.CONTENT_TYPE;
 
-/**
- * @program: TcpProject
- * @description:
- * @author: XSL
- * @create: 2018-05-18 20:33
- **/
 public class ConsumerServerHandler extends SimpleChannelInboundHandler<FullHttpRequest> {
     private Logger logger = LoggerFactory.getLogger(ConsumerServerHandler.class);
     private static ConcurrentHashMap<String,Channel> channelMap = new ConcurrentHashMap<>();
     private Map<String,String> paramMap = new HashMap<>();
-    private static Map<String,String> map = new HashMap<>();
-    static {
-        map.put("10.10.10.3","provider-small");
-        map.put("10.10.10.4","provider-medium");
-        map.put("10.10.10.5","provider-large");
-    }
+
     @Override
     protected void channelRead0(ChannelHandlerContext channelHandlerContext, FullHttpRequest fullHttpRequest) throws Exception {
         HttpPostRequestDecoder decoder = new HttpPostRequestDecoder(fullHttpRequest);
@@ -54,31 +41,29 @@ public class ConsumerServerHandler extends SimpleChannelInboundHandler<FullHttpR
             paramMap.put(attribute.getName(),attribute.getValue());
         }
         MessageRequest messageRequest = new MessageRequest(
-                IdGenerator.getIdByIncrement(),paramMap.get("interface"),paramMap.get("method"),paramMap.get("parameterTypesString"),paramMap.get("parameter")
+                IdGenerator.getIdAndIncrement(),
+                paramMap.get("interface"),
+                paramMap.get("method"),
+                paramMap.get("parameterTypesString"),
+                paramMap.get("parameter")
                 );
-        AgentFuture<MessageResponse> future = sendRequest("com.alibaba.dubbo.performance.demo.provider.IHelloService",messageRequest,channelHandlerContext);
-        Runnable callback = () -> {
-            try {
-                MessageResponse response = future.get();
-//                long time = System.nanoTime();
-//                long interval = time - Holder.removeTime(response.getMessageId());
-//                logger.info(map.get(response.getEndpoint().getHost()) + " : " + " cost = " + interval/1000000 + "ms executing task = " + response.getExecutingTask() + " now WaitTask = " + Holder.getSize());
-//                LoadBalanceChoice.addTime("com.alibaba.dubbo.performance.demo.provider.IHelloService", interval/1000 ,response.getEndpoint());
-//                LoadBalanceChoice.addExecutingTaskCount(response.getEndpoint().getHost(),response.getExecutingTask());
-                if (!writeResponse(fullHttpRequest,fullHttpRequest,channelHandlerContext, (Integer) response.getResultDesc())) {
+        AgentFuture<MessageResponse> future = sendRequest(messageRequest,channelHandlerContext);
+        Runnable callback = new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    MessageResponse response = future.get();
+                    writeResponse(fullHttpRequest,fullHttpRequest,channelHandlerContext, (Integer) response.getResultDesc());
+                } catch (Exception e) {
+                    FullHttpResponse response = new DefaultFullHttpResponse(
+                            HttpVersion.HTTP_1_1,HttpResponseStatus.BAD_REQUEST
+                    );
+                    channelHandlerContext.writeAndFlush(response);
+                    e.printStackTrace();
                 }
-            } catch (Exception e) {
-                FullHttpResponse response = new DefaultFullHttpResponse(
-                        HttpVersion.HTTP_1_1,HttpResponseStatus.BAD_REQUEST
-                );
-                channelHandlerContext.writeAndFlush(response);
-                e.printStackTrace();
             }
         };
-        WaitService.execute(callback);
-
-        // executor为null 将交给channel的绑定的eventLoop执行
-//        future.addListener(runnable,channelHandlerContext.channel().eventLoop());
+        ExeService.execute(callback);
     }
 
     private boolean writeResponse(HttpRequest request,HttpObject httpObject, ChannelHandlerContext ctx, int data) {
@@ -95,13 +80,12 @@ public class ConsumerServerHandler extends SimpleChannelInboundHandler<FullHttpR
         ctx.writeAndFlush(response,ctx.voidPromise());
         return keepAlive;
     }
-    private AgentFuture<MessageResponse> sendRequest(String serviceName, MessageRequest request, ChannelHandlerContext channelHandlerContext) throws Exception {
+    private AgentFuture<MessageResponse> sendRequest(MessageRequest request, ChannelHandlerContext channelHandlerContext) throws Exception {
         final Channel channel = channelHandlerContext.channel();
         AgentFuture<MessageResponse> future = new AgentFuture<>();
         Holder.putRequest(request.getMessageId(), future);
-        Endpoint endpoint = LoadBalanceChoice.weightedrandomChoice(serviceName);
+        Endpoint endpoint = LoadBalanceChoice.weightedrandomChoice();
         request.setEndpoint(endpoint);
-//        logger.info("now choose " + map.get(endpoint.getHost()));
         String key = channel.eventLoop().toString() + endpoint.toString();
         Channel nextChannel = channelMap.get(key);
         if (nextChannel == null) {

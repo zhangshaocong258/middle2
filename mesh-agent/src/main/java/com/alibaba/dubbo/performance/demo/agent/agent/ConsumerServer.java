@@ -1,6 +1,4 @@
-package com.alibaba.dubbo.performance.demo.agent.agent;/**
- * Created by msi- on 2018/5/18.
- */
+package com.alibaba.dubbo.performance.demo.agent.agent;
 
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.buffer.PooledByteBufAllocator;
@@ -15,18 +13,10 @@ import io.netty.handler.codec.http.HttpObjectAggregator;
 import io.netty.handler.codec.http.HttpServerCodec;
 
 
-/**
- * @program: TcpProject
- * @description:
- * @author: XSL
- * @create: 2018-05-18 20:26
- **/
-
 public class ConsumerServer {
-//    private Logger logger = LoggerFactory.getLogger(ConsumerServer.class);
     public void bind(final int port) throws Exception {
-        EventLoopGroup boss = new EpollEventLoopGroup(2);
-        EventLoopGroup worker = new EpollEventLoopGroup();
+        EventLoopGroup boss = new EpollEventLoopGroup(1);
+        EventLoopGroup worker = new EpollEventLoopGroup(8);
         ServerBootstrap serverBootstrap = new ServerBootstrap().group(boss,worker);
         try {
             serverBootstrap.channel(EpollServerSocketChannel.class)

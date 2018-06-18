@@ -1,13 +1,4 @@
-package com.alibaba.dubbo.performance.demo.agent.agent.model;/**
- * Created by msi- on 2018/6/1.
- */
-
-/**
- * @program: dubbo-mesh
- * @description:
- * @author: XSL
- * @create: 2018-06-01 21:13
- **/
+package com.alibaba.dubbo.performance.demo.agent.agent.model;
 
 public class Invocation {
     private String interfaceName;

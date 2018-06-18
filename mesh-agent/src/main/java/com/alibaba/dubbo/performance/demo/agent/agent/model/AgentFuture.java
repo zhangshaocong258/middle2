@@ -2,9 +2,6 @@ package com.alibaba.dubbo.performance.demo.agent.agent.model;
 
 import java.util.concurrent.*;
 
-/**
- * Created by zsc on 2018/5/17.
- */
 public class AgentFuture<T> implements Future<T> {
     private CountDownLatch latch = new CountDownLatch(1);
     private T result;

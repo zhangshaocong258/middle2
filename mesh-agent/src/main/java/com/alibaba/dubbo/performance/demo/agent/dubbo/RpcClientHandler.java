@@ -9,13 +9,11 @@ import io.netty.channel.SimpleChannelInboundHandler;
 
 public class RpcClientHandler extends SimpleChannelInboundHandler<RpcResponse> {
 
-//    private Logger logger = LoggerFactory.getLogger(RpcClientHandler.class);
     @Override
     protected void channelRead0(ChannelHandlerContext channelHandlerContext, RpcResponse response) {
         String requestId = response.getRequestId();
         RpcFuture future = RpcRequestHolder.remove(requestId);
         if(null != future){
-//            logger.info(new String(response.getBytes()));
             future.done(response);
         }
     }

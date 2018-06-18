@@ -1,6 +1,4 @@
-package com.alibaba.dubbo.performance.demo.agent.agent.serialize;/**
- * Created by msi- on 2018/5/18.
- */
+package com.alibaba.dubbo.performance.demo.agent.agent.serialize;
 
 import com.esotericsoftware.kryo.Kryo;
 import com.esotericsoftware.kryo.io.Input;
@@ -11,12 +9,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 
-/**
- * @program: dubbo-mesh
- * @description: 使用kryo框架序列化/反序列化消息
- * @author: XSL
- * @create: 2018-05-18 15:40
- **/
 
 public class KryoSerialize {
     private KryoPool pool = null;

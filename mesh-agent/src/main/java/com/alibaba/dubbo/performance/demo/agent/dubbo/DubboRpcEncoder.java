@@ -16,7 +16,7 @@ import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 
-public class DubboRpcEncoder extends MessageToByteEncoder{
+public class DubboRpcEncoder extends MessageToByteEncoder {
     // header length.
     protected static final int HEADER_LENGTH = 16;
     // magic header.
@@ -28,7 +28,7 @@ public class DubboRpcEncoder extends MessageToByteEncoder{
 
     @Override
     protected void encode(ChannelHandlerContext ctx, Object msg, ByteBuf buffer) throws Exception {
-        Request req = (Request)msg;
+        Request req = (Request) msg;
 
         // header.
         byte[] header = new byte[HEADER_LENGTH];
@@ -46,23 +46,16 @@ public class DubboRpcEncoder extends MessageToByteEncoder{
 
         // encode request data.
         int savedWriteIndex = buffer.writerIndex();
-//        buffer.writerIndex(savedWriteIndex + HEADER_LENGTH);
         buffer.writeBytes(header);
         ByteBufOutputStream bos = new ByteBufOutputStream(buffer);
         encodeRequestData(bos, req.getData());
         int endWriteIndex = buffer.writerIndex();
-        buffer.setInt(savedWriteIndex + 12,endWriteIndex - savedWriteIndex - HEADER_LENGTH);
-//        int len = bos.size();
-//        buffer.writeBytes(bos.toByteArray());
-//        Bytes.int2bytes(len, header, 12);
-        // write
-//        buffer.writerIndex(savedWriteIndex);
-//        buffer.writeBytes(header); // write header.
-//        buffer.writerIndex(savedWriteIndex + HEADER_LENGTH + len);
+        buffer.setInt(savedWriteIndex + 12, endWriteIndex - savedWriteIndex - HEADER_LENGTH);
+
     }
 
     public void encodeRequestData(OutputStream out, Object data) throws Exception {
-        RpcInvocation inv = (RpcInvocation)data;
+        RpcInvocation inv = (RpcInvocation) data;
 
         PrintWriter writer = new PrintWriter(new OutputStreamWriter(out));
 

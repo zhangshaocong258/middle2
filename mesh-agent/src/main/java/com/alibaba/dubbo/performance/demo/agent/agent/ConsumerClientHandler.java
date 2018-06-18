@@ -8,9 +8,6 @@ import io.netty.channel.SimpleChannelInboundHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-/**
- * Created by zsc on 2018/5/17.
- */
 public class ConsumerClientHandler extends SimpleChannelInboundHandler<MessageResponse> {
     private Logger logger = LoggerFactory.getLogger(ConsumerClientHandler.class);
 
@@ -19,7 +16,6 @@ public class ConsumerClientHandler extends SimpleChannelInboundHandler<MessageRe
         AgentFuture<MessageResponse> future = Holder.removeRequest(messageResponse.getMessageId());
         if (future != null) {
             future.done(messageResponse);
-            logger.info("cccccccffffffffuturedone");
 
         }
     }

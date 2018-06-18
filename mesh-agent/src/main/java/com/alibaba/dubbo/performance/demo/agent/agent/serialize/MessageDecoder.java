@@ -1,6 +1,4 @@
-package com.alibaba.dubbo.performance.demo.agent.agent.serialize;/**
- * Created by msi- on 2018/5/18.
- */
+package com.alibaba.dubbo.performance.demo.agent.agent.serialize;
 
 import com.alibaba.dubbo.performance.demo.agent.agent.model.*;
 import com.alibaba.dubbo.performance.demo.agent.agent.util.Common;
@@ -19,16 +17,7 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.util.List;
 
-
-/**
- * @program: dubbo-mesh
- * @description: 消息解码接口
- * @author: XSL
- * @create: 2018-05-18 16:11
- **/
-
 public class MessageDecoder extends LengthFieldBasedFrameDecoder {
-//    private Logger logger = LoggerFactory.getLogger(MessageDecoder.class);
     private static final int MAX_OBJECT_SIZE = 16384;
     private byte[] endpointBytes = new byte[8];
     private String id;
@@ -41,10 +30,7 @@ public class MessageDecoder extends LengthFieldBasedFrameDecoder {
         super(MAX_OBJECT_SIZE,14,4);
         this.kryoSerialize = new KryoSerialize(pool);
     }
-    public MessageDecoder(int maxObjectSize, KryoPool pool) {
-        super(MAX_OBJECT_SIZE,14,4);
-        this.kryoSerialize = new KryoSerialize(pool);
-    }
+
     @Override
     protected Object decode(ChannelHandlerContext ctx, ByteBuf in) throws Exception {
         ByteBuf byteBuf = (ByteBuf) super.decode(ctx,in);
@@ -53,12 +39,6 @@ public class MessageDecoder extends LengthFieldBasedFrameDecoder {
         } else {
             try {
                 Object response = decodeData(byteBuf);
-//                if (response instanceof MessageResponse) {
-//                  MessageFuture future = Holder.removeRequest(((MessageResponse) response).getMessageId());
-//                  if (future!=null) {
-//                      future.done(response);
-//                  }
-//                }
                 return response;
             } catch (IOException e) {
                 e.printStackTrace();
@@ -67,7 +47,6 @@ public class MessageDecoder extends LengthFieldBasedFrameDecoder {
         }
     }
     private Object decodeData(ByteBuf in) throws IOException {
-        //根据状态标识判断是request还是response
         status = in.readByte();
         executingTasks = ((int) in.readByte() & 0xff);
         id = String.valueOf(in.readInt());

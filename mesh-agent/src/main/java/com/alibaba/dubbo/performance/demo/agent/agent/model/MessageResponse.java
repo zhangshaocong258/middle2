@@ -1,17 +1,9 @@
-package com.alibaba.dubbo.performance.demo.agent.agent.model;/**
- * Created by msi- on 2018/5/16.
- */
+package com.alibaba.dubbo.performance.demo.agent.agent.model;
 
 import com.alibaba.dubbo.performance.demo.agent.registry.Endpoint;
 
 import java.io.Serializable;
 
-/**
- * @program: TcpProject
- * @description:
- * @author: XSL
- * @create: 2018-05-16 21:27
- **/
 
 public class MessageResponse implements Serializable {
     private String messageId;
